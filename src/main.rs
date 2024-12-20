@@ -16,31 +16,44 @@ fn create_qdrant_client() -> Result<Qdrant> {
     Ok(client)
 }
 
-async fn prompt(query: &str) -> Result<String> {
+async fn init() -> Result<state::AppState> {
     let qdrant_client = create_qdrant_client()?;
     let state = state::AppState {
         agent: MyAgent::new(qdrant_client),
     };
 
-    state.agent.init().await?;
+    // state.agent.init().await?;
 
     // TODO: get file from user
-    // let file = file::File::new()?;
+    // let file = file::File::new("./titanic.csv".into())?;
 
+    // state.agent.get_embedding(file).await?;
+
+    Ok(state)
+}
+
+async fn prompt(state: &state::AppState, query: &str) -> Result<String> {
     let response = state.agent.prompt(query.to_string()).await?;
 
     Ok(response)
 }
 
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn main() -> ! {
     dotenv::dotenv().ok();
+
+    let state = init().await.expect("Failed to initialize state");
+
     println!("Do you have any questions?");
-    let user_input = io_utils::get_user_input();
-    println!("You said: {}", user_input);
 
-    let response = prompt(&user_input).await?;
+    loop {
+        let user_input = io_utils::get_user_input();
+        let response = prompt(&state, &user_input)
+            .await
+            .expect("Failed to get response");
 
-    println!("{}", response);
-    Ok(())
+        println!("{}", response);
+
+        println!("Do you have any further questions?");
+    }
 }

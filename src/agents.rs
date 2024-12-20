@@ -21,8 +21,9 @@ use anyhow::{anyhow, Result};
 use crate::file::File;
 
 static COLLECTION: &str = "csv-files";
+static GPT_MODEL: &str = "gpt-4o-mini";
 static EMBEDDING_MODEL: &str = "text-embedding-3-small";
-static EMBEDDING_DIMENSIONS: u32 = 1536;
+static EMBEDDING_DIMENSIONS: u32 = 512;
 
 static SYSTEM_PROMPT: &str = "You are a world-class data analyst, specialising in analysing comma-delimited CSV files.
       Your job is to analyse some CSV snippets and determine what the results are for the question that the user is asking.
@@ -152,7 +153,7 @@ impl Agent for MyAgent {
             .chat()
             .create(
                 CreateChatCompletionRequestArgs::default()
-                    .model("gpt-3.5-turbo")
+                    .model(GPT_MODEL)
                     .messages(vec![
                         ChatCompletionRequestMessage::System(
                             ChatCompletionRequestSystemMessageArgs::default()
@@ -177,8 +178,6 @@ impl Agent for MyAgent {
                     .clone()
                     .unwrap()
             })?;
-
-        println!("response: {}", res);
 
         Ok(res)
     }
